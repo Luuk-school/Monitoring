@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Log Viewer - Multi-Host Monitor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <style>
+        .log-container {
+            height: 60vh;
+            overflow-y: auto;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border-left: 3px solid #6c757d;
+        }
+        
+        .log-entry.error {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left-color: #dc3545;
+            color: #f8d7da;
+        }
+        
+        .log-entry.warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left-color: #ffc107;
+            color: #fff3cd;
+        }
+        
+        .log-entry.success {
+            background-color: rgba(25, 135, 84, 0.1);
+            border-left-color: #198754;
+            color: #d1e7dd;
+        }
+        
+        .log-entry.info {
+            background-color: rgba(13, 202, 240, 0.1);
+            border-left-color: #0dcaf0;
+            color: #b3e5fc;
+        }
+        
+        .log-entry.debug {
+            background-color: rgba(108, 117, 125, 0.1);
+            border-left-color: #6c757d;
+            color: #d1ecf1;
+        }
+        
+        .log-timestamp {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .log-host {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+        
+        .log-type {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        .log-message {
+            color: #ffffff;
+        }
+        
+        .filters-card {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .status-badge {
+            font-size: 0.8em;
+        }
+        
+        .control-buttons {
+            min-width: 120px;
+        }
+        
+        .control-buttons .btn {
+            width: 100%;
+            text-align: left;
+        }
+        
+        #auto-scroll-toggle.active {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-file-alt"></i> Live Log Viewer
+            </span>
+            <div>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <span class="navbar-text" id="log-stats">
+                    <i class="fas fa-info-circle"></i> Loading...
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <!-- Filters -->
+        <div class="card filters-card mb-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-filter"></i> Filters & Controls
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="host-filter" class="form-label">Host</label>
+                        <select class="form-select form-select-sm" id="host-filter">
+                            <option value="">All Hosts</option>
+                            {% for host_id, host in hosts.items() %}
+                            <option value="{{ host_id }}">{{ host.info.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="type-filter" class="form-label">Log Type</label>
+                        <select class="form-select form-select-sm" id="type-filter">
+                            <option value="">All Types</option>
+                            {% for log_type in log_stats.log_types %}
+                            <option value="{{ log_type }}">{{ log_type|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="level-filter" class="form-label">Level</label>
+                        <select class="form-select form-select-sm" id="level-filter">
+                            <option value="">All Levels</option>
+                            <option value="success">Success</option>
+                            <option value="error">Error</option>
+                            <option value="warning">Warning</option>
+                            <option value="info">Info</option>
+                            <option value="debug">Debug</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="limit-filter" class="form-label">Limit</label>
+                        <select class="form-select form-select-sm" id="limit-filter">
+                            <option value="50">50 lines</option>
+                            <option value="100" selected>100 lines</option>
+                            <option value="250">250 lines</option>
+                            <option value="500">500 lines</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Controls</label><br>
+                        <div class="d-flex flex-column gap-1 control-buttons">
+                            <button class="btn btn-sm btn-outline-success" id="auto-scroll-toggle" title="Automatically scroll to newest logs">
+                                <i class="fas fa-arrows-alt-v"></i> Auto Scroll
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" id="refresh-btn" title="Manually refresh logs">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" id="clear-btn" title="Clear all logs from display">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="search-input" class="form-label">Search</label>
+                        <input type="text" class="form-control form-control-sm" id="search-input" placeholder="Search logs...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Display -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-terminal"></i> Live Logs
+                    <span class="badge bg-primary ms-2" id="log-count">0</span>
+                </h5>
+                <div>
+                    <span class="badge bg-success status-badge me-1" id="status-badge">
+                        <i class="fas fa-circle"></i> Live
+                    </span>
+                    <small class="text-muted" id="last-update">Never</small>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="log-container" id="log-container">
+                    <div class="text-center text-muted p-4">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                        <p>Loading logs...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        let autoScroll = true;
+        let refreshInterval;
+        let searchTerm = '';
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadLogs();
+            startAutoRefresh();
+        });
+        
+        function setupEventListeners() {
+            // Filter changes
+            ['host-filter', 'type-filter', 'level-filter', 'limit-filter'].forEach(id => {
+                document.getElementById(id).addEventListener('change', loadLogs);
+            });
+            
+            // Search
+            document.getElementById('search-input').addEventListener('input', function(e) {
+                searchTerm = e.target.value.toLowerCase();
+                filterDisplayedLogs();
+            });
+            
+            // Controls
+            document.getElementById('auto-scroll-toggle').addEventListener('click', toggleAutoScroll);
+            document.getElementById('refresh-btn').addEventListener('click', loadLogs);
+            document.getElementById('clear-btn').addEventListener('click', clearLogs);
+            
+            // Auto-scroll detection
+            document.getElementById('log-container').addEventListener('scroll', function(e) {
+                const container = e.target;
+                const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+                if (!isAtBottom && autoScroll) {
+                    toggleAutoScroll();
+                }
+            });
+        }
+        
+        function loadLogs() {
+            const params = new URLSearchParams({
+                host_id: document.getElementById('host-filter').value,
+                log_type: document.getElementById('type-filter').value,
+                level: document.getElementById('level-filter').value,
+                limit: document.getElementById('limit-filter').value
+            });
+            
+            // Remove empty params
+            [...params.keys()].forEach(key => {
+                if (!params.get(key)) params.delete(key);
+            });
+            
+            updateStatusBadge('loading');
+            
+            fetch(`/api/logs?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayLogs(data.logs);
+                        updateStats(data.stats);
+                        updateStatusBadge('success');
+                        updateLastUpdate();
+                    } else {
+                        updateStatusBadge('error');
+                        console.error('Error loading logs:', data.error);
+                    }
+                })
+                .catch(error => {
+                    updateStatusBadge('error');
+                    console.error('Network error:', error);
+                });
+        }
+        
+        function displayLogs(logs) {
+            const container = document.getElementById('log-container');
+            const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+            
+            let html = '';
+            if (logs.length === 0) {
+                html = '<div class="text-center text-muted p-4"><i class="fas fa-inbox fa-2x mb-2"></i><p>No logs found</p></div>';
+            } else {
+                logs.forEach(log => {
+                    html += createLogEntry(log);
+                });
+            }
+            
+            container.innerHTML = html;
+            document.getElementById('log-count').textContent = logs.length;
+            
+            // Apply search filter if active
+            if (searchTerm) {
+                filterDisplayedLogs();
+            }
+            
+            // Auto scroll to bottom if enabled and was at bottom
+            if (autoScroll && (wasAtBottom || logs.length > 0)) {
+                scrollToBottom();
+            }
+        }
+        
+        function createLogEntry(log) {
+            return `
+                <div class="log-entry ${log.level}" data-searchable="${log.message.toLowerCase()}">
+                    <span class="log-timestamp">${log.timestamp}</span>
+                    <span class="log-host">[${log.host_id}]</span>
+                    <span class="log-type">[${log.log_type}]</span>
+                    <span class="log-level badge bg-${getLogLevelColor(log.level)}">${log.level.toUpperCase()}</span>
+                    <div class="log-message mt-1">${escapeHtml(log.message)}</div>
+                </div>
+            `;
+        }
+        
+        function getLogLevelColor(level) {
+            switch(level) {
+                case 'error': return 'danger';
+                case 'warning': return 'warning';
+                case 'info': return 'info';
+                case 'debug': return 'secondary';
+                default: return 'secondary';
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function filterDisplayedLogs() {
+            const entries = document.querySelectorAll('.log-entry');
+            let visibleCount = 0;
+            
+            entries.forEach(entry => {
+                const searchable = entry.getAttribute('data-searchable');
+                if (!searchTerm || searchable.includes(searchTerm)) {
+                    entry.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    entry.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('log-count').textContent = visibleCount;
+        }
+        
+        function updateStats(stats) {
+            const statsText = `${stats.total_entries} entries • ${stats.total_files} files • ${stats.hosts.length} hosts`;
+            document.getElementById('log-stats').innerHTML = `<i class="fas fa-info-circle"></i> ${statsText}`;
+        }
+        
+        function updateStatusBadge(status) {
+            const badge = document.getElementById('status-badge');
+            badge.className = 'badge status-badge me-1';
+            
+            switch(status) {
+                case 'loading':
+                    badge.classList.add('bg-warning');
+                    badge.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading';
+                    break;
+                case 'success':
+                    badge.classList.add('bg-success');
+                    badge.innerHTML = '<i class="fas fa-circle"></i> Live';
+                    break;
+                case 'error':
+                    badge.classList.add('bg-danger');
+                    badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                    break;
+            }
+        }
+        
+        function updateLastUpdate() {
+            const now = new Date();
+            document.getElementById('last-update').textContent = now.toLocaleTimeString();
+        }
+        
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const btn = document.getElementById('auto-scroll-toggle');
+            
+            if (autoScroll) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-arrows-alt-v"></i>';
+                scrollToBottom();
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="far fa-pause-circle"></i>';
+            }
+        }
+        
+        function scrollToBottom() {
+            const container = document.getElementById('log-container');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function clearLogs() {
+            document.getElementById('log-container').innerHTML = 
+                '<div class="text-center text-muted p-4"><i class="fas fa-trash fa-2x mb-2"></i><p>Display cleared</p></div>';
+            document.getElementById('log-count').textContent = '0';
+        }
+        
+        function startAutoRefresh() {
+            refreshInterval = setInterval(loadLogs, 5000); // Refresh every 5 seconds
+        }
+        
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+        
+        // Stop refresh when page is hidden
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

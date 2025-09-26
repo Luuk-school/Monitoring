@@ -3,6 +3,7 @@ import time
 import json
 import platform
 import socket
+import threading
 from datetime import datetime
 from config import MAX_HISTORY_POINTS
 
@@ -15,10 +16,37 @@ class SystemMonitor:
             'network': [],
             'timestamps': []
         }
+        # Initialize CPU monitoring
+        self._last_cpu_call = None
+        self._cpu_cache = None
+        self._cpu_lock = threading.Lock()
+        psutil.cpu_percent()  # First call to initialize
+        
+        # Start background CPU monitoring thread
+        self._start_cpu_monitor()
+    
+    def _start_cpu_monitor(self):
+        """Start background thread to keep CPU stats updated"""
+        def cpu_monitor():
+            while True:
+                try:
+                    cpu_percent = psutil.cpu_percent(interval=2)  # 2 second interval
+                    with self._cpu_lock:
+                        self._cpu_cache = cpu_percent
+                        self._last_cpu_call = time.time()
+                except Exception as e:
+                    print(f"CPU monitor thread error: {e}")
+                    time.sleep(5)
+        
+        thread = threading.Thread(target=cpu_monitor, daemon=True)
+        thread.start()
     
     def get_cpu_info(self):
         """Verzamel CPU informatie"""
-        cpu_percent = psutil.cpu_percent(interval=1)
+        # Use cached CPU value if available
+        with self._cpu_lock:
+            cpu_percent = self._cpu_cache if self._cpu_cache is not None else 0
+        
         cpu_count = psutil.cpu_count()
         cpu_freq = psutil.cpu_freq()
         
