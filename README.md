@@ -1,4 +1,4 @@
-# Voor de mensen die alles gaan lezen. Doe niet dit is gwn een school opdracht gemaakt door AI:/
+# Voor de mensen die alles gaan lezen. dit is gwn een school opdracht gemaakt door AI:/
 
 # Multi-Host System Monitor
 
