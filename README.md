@@ -1,3 +1,5 @@
+# Voor de mensen die alles gaan lezen. Doe niet dit is gwn een school opdracht gemaakt door AI:/
+
 # Multi-Host System Monitor
 
 Een krachtige, web-gebaseerde system monitoring tool die meerdere hosts tegelijkertijd kan monitoren. Biedt real-time inzicht in CPU, geheugen, disk en netwerk gebruik van alle hosts in je infrastructuur.

@@ -123,14 +123,12 @@ SSH_HOSTS = {
         'ip': '192.168.2.2',
         'type': 'linux',
         'ssh_user': 'monitoring',
-        'ssh_password': 'your_password',  # Of gebruik SSH keys
         # 'ssh_key': '/path/to/private/key'
     },
     'windows-ad': {
         'ip': '192.168.2.1', 
         'type': 'windows',
         'ssh_user': 'Administrator',
-        'ssh_password': 'your_password'
     }
 }
 
