@@ -3,7 +3,7 @@
 # Server instellingen
 HOST = '0.0.0.0'
 PORT = 5000
-DEBUG = True
+DEBUG = False
 
 # Monitoring instellingen
 REFRESH_INTERVAL = 5  # seconden
@@ -22,8 +22,8 @@ MONITORED_HOSTS = {
         'type': 'windows',
         'port': 5000,
         'enabled': True,
-        'monitoring_method': 'ssh',  # Nu ook SSH voor Windows!
-        'ssh_user': 'luuk',  # SSH gebruiker voor Windows
+        'monitoring_method': 'ssh', 
+        'ssh_user': 'luuk', 
         'description': 'Windows Server with SSH monitoring'
     },
     'ubuntu-db': {
@@ -32,8 +32,8 @@ MONITORED_HOSTS = {
         'type': 'linux',
         'port': 5000,
         'enabled': True,
-        'monitoring_method': 'ssh',  # SSH voor gedetailleerde info
-        'ssh_user': 'ridderleeuw',  # Super user voor Linux servers
+        'monitoring_method': 'ssh',  
+        'ssh_user': 'ridderleeuw', 
         'description': 'Linux database server with SSH monitoring'
     },
     'ubuntu-web': {
@@ -42,8 +42,8 @@ MONITORED_HOSTS = {
         'type': 'linux', 
         'port': 5000,
         'enabled': True,
-        'monitoring_method': 'ssh',  # SSH voor gedetailleerde info
-        'ssh_user': 'ridderleeuw',  # Super user voor Linux servers
+        'monitoring_method': 'ssh',
+        'ssh_user': 'ridderleeuw', 
         'description': 'Linux webserver with SSH monitoring'
     },
     'localhost': {
@@ -52,11 +52,11 @@ MONITORED_HOSTS = {
         'type': 'linux',
         'port': 5000,
         'enabled': True,
-        'monitoring_method': 'local',  # Direct psutil calls
+        'monitoring_method': 'local',
         'description': 'Local monitoring server'
     }
 }
 
-# Connection timeout settings
-CONNECTION_TIMEOUT = 5  # seconden
-REQUEST_TIMEOUT = 10  # seconden
+# Connection timeout settings     (time in seconds)
+CONNECTION_TIMEOUT = 5 
+REQUEST_TIMEOUT = 10 

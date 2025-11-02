@@ -334,30 +334,30 @@ class HybridMultiHostMonitor:
     def get_host_data(self, host_id):
         """Haal data op van een specifieke host"""
         if not MONITORED_HOSTS.get(host_id, {}).get('enabled'):
-            print(f"🔴 DEBUG: Host {host_id} is disabled, skipping...")
+            print(f" DEBUG: Host {host_id} is disabled, skipping...")
             return None
             
         # Voor localhost, gebruik de lokale monitor
         if self.is_localhost(host_id):
-            print(f"🟡 DEBUG: Collecting data from localhost ({host_id})...")
+            print(f" DEBUG: Collecting data from localhost ({host_id})...")
             try:
                 data = self.local_monitor.collect_current_data()
                 self.hosts_status[host_id] = 'online'
                 self.hosts_data[host_id] = data
                 self.last_update[host_id] = datetime.now()
-                print(f"✅ DEBUG: Successfully collected data from localhost ({host_id})")
+                print(f" DEBUG: Successfully collected data from localhost ({host_id})")
                 return data
             except Exception as e:
-                print(f"❌ DEBUG: Error collecting local data from {host_id}: {e}")
+                print(f" DEBUG: Error collecting local data from {host_id}: {e}")
                 self.hosts_status[host_id] = 'error'
                 return None
         
         # Voor remote hosts, bepaal monitoring methode
         host_info = MONITORED_HOSTS[host_id]
         monitoring_method = host_info.get('monitoring_method', 'basic')
-        
-        print(f"🔵 DEBUG: Attempting to connect to {host_id} ({host_info['name']}) via {monitoring_method}...")
-        
+
+        print(f" DEBUG: Attempting to connect to {host_id} ({host_info['name']}) via {monitoring_method}...")
+
         try:
             data = None
             
@@ -375,15 +375,15 @@ class HybridMultiHostMonitor:
                 self.hosts_status[host_id] = 'online'
                 self.hosts_data[host_id] = data
                 self.last_update[host_id] = datetime.now()
-                print(f"✅ DEBUG: Successfully retrieved data from {host_id} ({host_info['name']})")
+                print(f" DEBUG: Successfully retrieved data from {host_id} ({host_info['name']})")
                 return data
             else:
-                print(f"❌ DEBUG: No data retrieved from {host_id} ({host_info['name']})")
+                print(f" DEBUG: No data retrieved from {host_id} ({host_info['name']})")
                 self.hosts_status[host_id] = 'offline'
                 return None
                 
         except Exception as e:
-            print(f"❌ DEBUG: Unexpected error connecting to {host_id} ({host_info['name']}): {e}")
+            print(f" DEBUG: Unexpected error connecting to {host_id} ({host_info['name']}): {e}")
             self.hosts_status[host_id] = 'error'
             return None
 
@@ -393,10 +393,10 @@ class HybridMultiHostMonitor:
 
     def update_all_hosts(self):
         """Update data van alle hosts (parallel)"""
-        print(f"🚀 DEBUG: Starting parallel update of all hosts at {datetime.now().strftime('%H:%M:%S')}")
+        print(f" DEBUG: Starting parallel update of all hosts at {datetime.now().strftime('%H:%M:%S')}")
         
         enabled_hosts = [host_id for host_id, host_info in MONITORED_HOSTS.items() if host_info.get('enabled')]
-        print(f"📊 DEBUG: Updating {len(enabled_hosts)} enabled hosts: {', '.join(enabled_hosts)}")
+        print(f" DEBUG: Updating {len(enabled_hosts)} enabled hosts: {', '.join(enabled_hosts)}")
         
         threads = []
         
@@ -404,7 +404,7 @@ class HybridMultiHostMonitor:
             thread = threading.Thread(target=self.update_single_host, args=(host_id,))
             thread.start()
             threads.append((thread, host_id))
-            print(f"🧵 DEBUG: Started thread for host {host_id}")
+            print(f" DEBUG: Started thread for host {host_id}")
         
         # Wacht tot alle threads klaar zijn
         completed_threads = 0
@@ -412,11 +412,11 @@ class HybridMultiHostMonitor:
             thread.join(timeout=REQUEST_TIMEOUT + 2)
             completed_threads += 1
             if thread.is_alive():
-                print(f"⚠️ DEBUG: Thread for {host_id} timed out after {REQUEST_TIMEOUT + 2}s")
+                print(f" DEBUG: Thread for {host_id} timed out after {REQUEST_TIMEOUT + 2}s")
             else:
-                print(f"✅ DEBUG: Thread for {host_id} completed ({completed_threads}/{len(threads)})")
+                print(f" DEBUG: Thread for {host_id} completed ({completed_threads}/{len(threads)})")
         
-        print(f"🏁 DEBUG: All host updates completed at {datetime.now().strftime('%H:%M:%S')}")
+        print(f" DEBUG: All host updates completed at {datetime.now().strftime('%H:%M:%S')}")
 
     def get_all_hosts_summary(self):
         """Krijg een samenvatting van alle hosts"""

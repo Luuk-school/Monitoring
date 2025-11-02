@@ -142,7 +142,7 @@ class LogReader:
                 'level': level
             }
             self.logs[key].append(log_entry)
-            print(f"📝 Added manual log: {host_id}:{log_type} - {message}")
+            print(f" Added manual log: {host_id}:{log_type} - {message}")
         except Exception as e:
             print(f"Error adding manual log: {e}")
     
