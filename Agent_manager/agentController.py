@@ -1,10 +1,8 @@
-#agent checker
-from connector import createConnection
+#agent verwerk hier een update script voor de agent
 
-if createConnection():
-    print("Database connection successful")
-else:
-    print("Database connection failed")
+from MariaDB.connector import dataBaseConnection
 
-# def check_agent_status(agent):
-#    agent = 
+
+
+ def check_agent_status():
+
