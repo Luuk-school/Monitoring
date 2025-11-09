@@ -1,7 +1,17 @@
 # Monitoring script gemaakt voor school.
-Voor school heb ik een monitoring script gemaakt met python om mijn test omgeving te monitoren.
+Monitoring script gemaakt voor school.
+De monitoring werkt via http-methods om data optevragen van een agent.
+data wordt opgeslagen in een database en weer uitgelezen om te verwerken op een website.
 
-De monitoring werkt via een SSH verbinding, waar de python script via bash systeemgevens opvraagd.
 
+donwload de agent folder:
+1* sudo apt update && sudo apt upgrade -y
+2* sudo apt python3 -y
+2* sudo apt install subversion -y 
+3* svn export https://github.com/Luuk-school/Monitoring/trunk/Agent
+4* sudo apt install python3-psutil python3-requests -y
+5* python3 ~/Agent/main.py
 
-Monitoring is veranderd van ssh naar http methods voor future proving.
+copy paste
+
+sudo apt update && sudo apt upgrade -y && sudo apt install python3 python3-pip -y && sudo apt install subversion -y && svn export https://github.com/Luuk-school/Monitoring/trunk/Agent && sudo apt install python3-psutil python3-requests -y && python3 ~/Agent/main.py
