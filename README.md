@@ -29,8 +29,6 @@ rm -rf main.zip Monitoring-main
 
 ```bash
 sudo apt install python3-psutil python3-requests -y
-# of gebruik pip3 indien gewenst:
-# pip3 install psutil requests
 ```
 
 4. Start de agent:
