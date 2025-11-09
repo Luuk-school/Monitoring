@@ -14,6 +14,10 @@ def api():
 
         data = "hello world"
         return jsonify({'data': data})
+
+
+
+        
         
 @app.route('/api/agentInfo', methods = ['POST'])
 def agent_info(): #agent information checker
