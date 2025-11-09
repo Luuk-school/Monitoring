@@ -1,30 +1,33 @@
 # This is a script on its own, not part of a package.
-import psutil
 import requests
 from agentInfo import getAgentInfo
+from agent import getSystemInfo
 import time
 
 
+test = True  #verander naar False om continue te runnen
 
-def getsysteminfo():
-    test = psutil.cpu_percent(interval=1)
-    print(test)
 
 def sendAgentVersionData():
-    
-    data = getAgentInfo()
+
+    agent_VersionData_Data = getAgentInfo()
     api = "http://192.168.2.5:5000/api/agentInfo"
-    response = requests.post(api, json=data)
+    response = requests.post(api, json=agent_VersionData_Data)
+    print(response.text)
+
+def sendSystemData():
+    system_data = getSystemInfo()
+    api = "http://192.168.2.5:5000/api/sysdata"
+    response = requests.post(api, json=system_data)
     print(response.text)
 
 
 
-#data = {"cpu": psutil.cpu_percent(interval=1),
-#}
-#api = "http://192.168.2.5:5000/api/data"
-#response = requests.post(api, json=data)
-#print(response.text)
-
 
 if __name__ == "__main__":
-   sendAgentVersionData() #stuurt info naar de server
+    while True:
+        time.sleep(5) #wacht 5 seconden
+        sendAgentVersionData()
+        sendSystemData()
+        if test:
+            break
