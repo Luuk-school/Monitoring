@@ -13,13 +13,15 @@ Download de `Agent` folder en start de agent op de target-machine met de volgend
 
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install python3 python3-pip subversion -y
 ```
 
 2. Haal de `Agent` folder op vanuit GitHub:
 
 ```bash
-svn export https://github.com/Luuk-school/Monitoring/trunk/Agent
+wget https://github.com/Luuk-school/Monitoring/archive/refs/heads/main.zip
+unzip main.zip
+mv Monitoring-main/Agent ~/Agent
+rm -rf main.zip Monitoring-main
 ```
 
 3. Installeer Python-vereisten (psutil en requests):
@@ -39,5 +41,5 @@ python3 ~/Agent/main.py
 Eén-lijns commando (copy/paste) — optie om alles in één keer te doen:
 
 ```bash
-sudo apt update && sudo apt upgrade -y && sudo apt install python3 python3-pip subversion -y && svn export https://github.com/Luuk-school/Monitoring/trunk/Agent && sudo apt install python3-psutil python3-requests -y && python3 ~/Agent/main.py
+sudo apt update && sudo apt upgrade -y && wget https://github.com/Luuk-school/Monitoring/archive/refs/heads/main.zip && unzip main.zip && mv Monitoring-main/Agent ~/Agent && rm -rf main.zip Monitoring-main && sudo apt install python3-psutil python3-requests -y && python3 ~/Agent/main.py
 ```
