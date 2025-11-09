@@ -3,7 +3,7 @@ from MariaDB.connector import databaseConnection
 from datetime import datetime, timezone
 
 
-app = Flask(__name__, template_folder="Frontend")
+app = Flask(__name__, template_folder="Frontend", static_folder="Frontend")
 
 @app.route("/")
 def index():
@@ -73,6 +73,67 @@ def api():
             # In practice connector prints errors and doesn't raise; still handle unexpected exceptions
             app.logger.error("Error storing sysdata: %s", e)
             return jsonify({'status': 'error', 'message': 'failed to store data'}), 500
+
+
+
+@app.route('/latest_sysdata', methods=['GET'])
+def latest_sysdata():
+    """Return latest sysdata per hostname by reading the database.
+
+    This queries the Systemdata table for the most recent collected_at per
+    hostname and returns an array of records shaped like the original POST payload.
+    """
+    # SQL: select latest row per hostname
+    latest_sql = (
+        "SELECT s.hostname, s.collected_at, s.cpu_percent, "
+        "s.mem_total, s.mem_available, s.mem_used, s.mem_free, s.mem_percent, "
+        "s.disk_total, s.disk_available, s.disk_used, s.disk_free, s.disk_percent "
+        "FROM Systemdata s "
+        "JOIN (SELECT hostname, MAX(collected_at) AS maxcol FROM Systemdata GROUP BY hostname) m "
+        "ON s.hostname = m.hostname AND s.collected_at = m.maxcol"
+    )
+
+    try:
+        rows = databaseConnection(latest_sql)
+    except Exception as e:
+        app.logger.error('Error querying latest sysdata: %s', e)
+        return jsonify({'status': 'error', 'message': 'db query failed'}), 500
+
+    if not rows:
+        # No data yet
+        return jsonify([]), 200
+
+    results = []
+    for r in rows:
+        # r is expected to be a tuple matching the selected columns
+        (
+            hostname, collected_at, cpu_percent,
+            mem_total, mem_available, mem_used, mem_free, mem_percent,
+            disk_total, disk_available, disk_used, disk_free, disk_percent
+        ) = r
+
+        record = {
+            'hostname': hostname,
+            'timestamp': collected_at.strftime("%Y-%m-%dT%H:%M:%S") if hasattr(collected_at, 'strftime') else str(collected_at),
+            'cpu_percent': cpu_percent,
+            'memory': {
+                'total': mem_total,
+                'available': mem_available,
+                'used': mem_used,
+                'free': mem_free,
+                'percent': mem_percent,
+            },
+            'disk': {
+                'total': disk_total,
+                'available': disk_available,
+                'used': disk_used,
+                'free': disk_free,
+                'percent': disk_percent,
+            }
+        }
+        results.append(record)
+
+    return jsonify(results), 200
 
 
 

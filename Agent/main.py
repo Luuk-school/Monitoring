@@ -5,7 +5,7 @@ from agent import getSystemInfo
 import time
 
 
-test = True  #verander naar False om continue te runnen
+test = False  #verander naar False om continue te runnen
 
 
 def sendAgentVersionData():

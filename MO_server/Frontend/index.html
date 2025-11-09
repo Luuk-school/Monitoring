@@ -1,12 +1,41 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>Monitoring</title>
-    </head>
-    <body>
-        <h1>Welcome to the Monitoring Application</h1>
-        <p>This is the main page served by Flask.</p>
-    </body>
-</html>
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <title>Monitoring Dashboard</title>
+            <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        </head>
+        <body>
+            <div class="wrap">
+                <header class="topbar">
+                    <div class="brand">
+                        <h1>Monitoring</h1>
+                        <small class="muted">Live host status</small>
+                    </div>
+
+                    <div class="controls">
+                        <input id="filter" placeholder="Filter hosts (name)" aria-label="Filter hosts" />
+                        <button id="refreshBtn" title="Refresh now">Refresh</button>
+                        <label class="toggle">
+                            <input id="autoPoll" type="checkbox" checked />
+                            <span>Auto</span>
+                        </label>
+                        <div id="status" class="status">Loading…</div>
+                    </div>
+                </header>
+
+                <main>
+                    <div id="hosts" class="hosts-grid">
+                        <!-- Host cards inserted here by script.js -->
+                    </div>
+                </main>
+
+                <footer class="foot">
+                    <small>Data from <code>/latest_sysdata</code>. Polling every 2s when Auto enabled.</small>
+                </footer>
+            </div>
+
+            <script src="{{ url_for('static', filename='script.js') }}"></script>
+        </body>
+    </html>

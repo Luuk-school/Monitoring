@@ -19,7 +19,8 @@ def databaseConnection(sql_query, parameters=None):
             password=password,
             database=database,
         )
-        print("Database connection successful")
+        if debug:
+            print("Database connection successful")
     except mysql.connector.Error as err:
         print(f"Error: {err}")
         return
