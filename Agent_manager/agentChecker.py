@@ -5,3 +5,8 @@ from MariaDB.connector import databaseConnection
 
 def check_agent_status():
      databaseConnection("SELECT DATABASE();")
+
+
+
+
+#kijk in de database of agent up to date is, anders geef een melding

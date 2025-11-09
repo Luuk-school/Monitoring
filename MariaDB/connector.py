@@ -26,35 +26,32 @@ def databaseConnection(sql_query, parameters=None):
 
     cur = connection.cursor()
 
+    result = None
     try:
         if parameters:
             cur.execute(sql_query, parameters)
         else:
             cur.execute(sql_query)
-        
 
         if cur.with_rows:
             rows = cur.fetchall()
+            result = rows
             if debug:
-                # print up to 100 rows for debugging
                 for i, row in enumerate(rows):
                     print(row)
                     if i >= 99:
                         break
         if debug:
-            # show summary / all rows (may be large) and connection info
             try:
-                print(f"database rows: {rows}")
+                print(f"database rows: {result}")
             except NameError:
                 print("database rows: <no rows fetched>")
             print(f"test: user={user}, password={password}, database={database}, host={host}")
 
-        connection.commit() 
+        connection.commit()
     except mysql.connector.Error as err:
         print(f"Error executing query: {err}")
     finally:
         cur.close()
         connection.close()
-
-#if debug:
- #   databaseConnection("SELECT DATABASE();")
+    return result
