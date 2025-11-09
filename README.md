@@ -41,10 +41,3 @@ Eén-lijns commando (copy/paste) — optie om alles in één keer te doen:
 ```bash
 sudo apt update && sudo apt upgrade -y && sudo apt install python3 python3-pip subversion -y && svn export https://github.com/Luuk-school/Monitoring/trunk/Agent && sudo apt install python3-psutil python3-requests -y && python3 ~/Agent/main.py
 ```
-
-Opmerkingen
-----------
-- Zorg dat de database-instellingen (in `MariaDB/connector.py`) correct zijn geconfigureerd via je environment variables.
-- De server draait in `MO_server` en exposeert de webinterface op poort 5000 (standaard Flask poort).
-
-Veel succes! Als je wilt kan ik het README nog verder uitbreiden met voorbeelden en screenshots van de webinterface.
